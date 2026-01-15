@@ -1,0 +1,20 @@
+<Project>
+  <PropertyGroup>
+
+    <!-- Targeting -->
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+
+    <!-- Code quality -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!-- Assembly metadata -->
+    <Authors>Simone Cappelletti</Authors>
+    <RepositoryUrl>https://github.com/simone-cappelletti/ShortiFy</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+  </PropertyGroup>
+</Project>
