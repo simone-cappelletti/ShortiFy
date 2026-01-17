@@ -12,6 +12,9 @@
     <AnalysisLevel>latest</AnalysisLevel>
 
     <!-- Assembly metadata -->
+    <Company>Simone Cappelletti</Company>
+    <Product>ShortiFy</Product>
+    <Description>URL shortener library</Description>
     <Authors>Simone Cappelletti</Authors>
     <RepositoryUrl>https://github.com/simone-cappelletti/ShortiFy</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
