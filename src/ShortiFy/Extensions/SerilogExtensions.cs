@@ -12,19 +12,20 @@ public static class SerilogExtensions
     /// Configures Serilog with two-stage initialization pattern.
     /// Bootstrap logger catches startup errors before full configuration loads.
     /// </summary>
-    /// <param name="builder">The host application builder.</param>
-    /// <returns>The host application builder for chaining.</returns>
-    public static IHostApplicationBuilder AddSerilogLogging(this IHostApplicationBuilder builder)
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddSerilogLogging(this IServiceCollection services, IConfiguration configuration)
     {
-        builder.Services.AddSerilog((services, lc) => lc
-            .ReadFrom.Configuration(builder.Configuration)
+        services.AddSerilog((services, lc) => lc
+            .ReadFrom.Configuration(configuration)
             .ReadFrom.Services(services)
             .Enrich.FromLogContext()
             .Enrich.WithEnvironmentName()
             .Enrich.WithMachineName()
             .Enrich.WithThreadId());
 
-        return builder;
+        return services;
     }
 
     /// <summary>

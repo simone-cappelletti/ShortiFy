@@ -11,8 +11,8 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure services using extension methods
-    builder.AddSerilogLogging();
+    // Configure services
+    builder.Services.AddSerilogLogging(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddRedisCache(builder.Configuration);
     builder.Services.AddObservability(builder.Configuration);
