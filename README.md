@@ -20,7 +20,7 @@ Learn and incrementally integrate new technologies through building a real appli
 | **Cache** | Redis | 7.x+ | - |
 | **Validation** | DataAnnotations | Built-in | Native .NET attributes |
 | **Logging** | Serilog | 8.x+ | Structured logging |
-| **Tracing** | OpenTelemetry | 1.x+ | Distributed tracing + Jaeger |
+| **Tracing** | OpenTelemetry | 1.x+ | Distributed tracing + Grafana |
 | **Containerization** | Docker | - | Multi-stage builds |
 | **Orchestration** | Docker Compose | - | Local environment |
 | **Testing** | xUnit | - | Unit & Integration tests |
