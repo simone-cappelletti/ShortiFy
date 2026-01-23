@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
 
 namespace SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
 
@@ -27,6 +26,7 @@ public class ShortiFyDesignTimeDbContextFactory : IDesignTimeDbContextFactory<Sh
                 $"Connection string 'DefaultConnection' not found. Ensure appsettings.json or appsettings.{environment}.json contains the connection string. Current environment: {environment}");
 
         var optionsBuilder = new DbContextOptionsBuilder<ShortiFyDbContext>();
+
         optionsBuilder.UseSqlServer(connectionString);
 
         return new ShortiFyDbContext(optionsBuilder.Options);
