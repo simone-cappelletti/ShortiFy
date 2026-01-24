@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
+using SimoneCappelletti.ShortiFy.Shared.Constants;
+
 namespace SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
 
 /// <summary>
@@ -12,7 +14,8 @@ public class ShortiFyDesignTimeDbContextFactory : IDesignTimeDbContextFactory<Sh
 {
     public ShortiFyDbContext CreateDbContext(string[] args)
     {
-        var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development";
+        var environment = Environment.GetEnvironmentVariable(AppConstants.EnvironmentVariables.AspNetCoreEnvironment)
+            ?? AppConstants.Environments.Development;
 
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -21,9 +24,9 @@ public class ShortiFyDesignTimeDbContextFactory : IDesignTimeDbContextFactory<Sh
             .AddEnvironmentVariables()
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
+        var connectionString = configuration.GetConnectionString(AppConstants.ConnectionStrings.DefaultConnection)
             ?? throw new InvalidOperationException(
-                $"Connection string 'DefaultConnection' not found. Ensure appsettings.json or appsettings.{environment}.json contains the connection string. Current environment: {environment}");
+                $"Connection string '{AppConstants.ConnectionStrings.DefaultConnection}' not found. Ensure appsettings.json or appsettings.{environment}.json contains the connection string. Current environment: {environment}");
 
         var optionsBuilder = new DbContextOptionsBuilder<ShortiFyDbContext>();
 

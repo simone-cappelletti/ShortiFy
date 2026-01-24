@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
 using SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
+using SimoneCappelletti.ShortiFy.Shared.Constants;
 
 namespace SimoneCappelletti.ShortiFy.Extensions;
 
@@ -18,8 +19,8 @@ public static class PersistenceExtensions
     /// <exception cref="InvalidOperationException">Thrown when connection string is not configured.</exception>
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionString = configuration.GetConnectionString(AppConstants.ConnectionStrings.DefaultConnection)
+            ?? throw new InvalidOperationException($"Connection string '{AppConstants.ConnectionStrings.DefaultConnection}' not found.");
 
         services.AddDbContext<ShortiFyDbContext>(options =>
             options.UseSqlServer(connectionString, sqlOptions =>

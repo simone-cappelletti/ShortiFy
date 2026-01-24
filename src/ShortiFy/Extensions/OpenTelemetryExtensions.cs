@@ -2,6 +2,8 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
+using SimoneCappelletti.ShortiFy.Shared.Constants;
+
 namespace SimoneCappelletti.ShortiFy.Extensions;
 
 /// <summary>
@@ -18,7 +20,7 @@ public static class OpenTelemetryExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddObservability(this IServiceCollection services, IConfiguration configuration)
     {
-        var otelServiceName = configuration["OpenTelemetry:ServiceName"] ?? "ShortiFy";
+        var otelServiceName = configuration["OpenTelemetry:ServiceName"] ?? AppConstants.ApplicationName;
         var otelEndpoint = configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317";
 
         services.AddOpenTelemetry()

@@ -1,3 +1,5 @@
+using SimoneCappelletti.ShortiFy.Shared.Constants;
+
 using StackExchange.Redis;
 
 namespace SimoneCappelletti.ShortiFy.Extensions;
@@ -16,13 +18,13 @@ public static class CachingExtensions
     /// <exception cref="InvalidOperationException">Thrown when Redis connection string is not configured.</exception>
     public static IServiceCollection AddRedisCache(this IServiceCollection services, IConfiguration configuration)
     {
-        var redisConnectionString = configuration.GetConnectionString("Redis")
-            ?? throw new InvalidOperationException("Connection string 'Redis' not found.");
+        var redisConnectionString = configuration.GetConnectionString(AppConstants.ConnectionStrings.Redis)
+            ?? throw new InvalidOperationException($"Connection string '{AppConstants.ConnectionStrings.Redis}' not found.");
 
         services.AddStackExchangeRedisCache(options =>
         {
             options.Configuration = redisConnectionString;
-            options.InstanceName = "ShortiFy:";
+            options.InstanceName = $"{AppConstants.ApplicationName}:";
         });
 
         // Register Redis ConnectionMultiplexer for OpenTelemetry instrumentation

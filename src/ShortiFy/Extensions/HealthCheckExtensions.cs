@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 using SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
+using SimoneCappelletti.ShortiFy.Shared.Constants;
 
 namespace SimoneCappelletti.ShortiFy.Extensions;
 
@@ -22,11 +23,11 @@ public static class HealthCheckExtensions
     /// <exception cref="InvalidOperationException">Thrown when required connection strings are not configured.</exception>
     public static IServiceCollection AddAppHealthChecks(this IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionString = configuration.GetConnectionString(AppConstants.ConnectionStrings.DefaultConnection)
+            ?? throw new InvalidOperationException($"Connection string '{AppConstants.ConnectionStrings.DefaultConnection}' not found.");
 
-        var redisConnectionString = configuration.GetConnectionString("Redis")
-            ?? throw new InvalidOperationException("Connection string 'Redis' not found.");
+        var redisConnectionString = configuration.GetConnectionString(AppConstants.ConnectionStrings.Redis)
+            ?? throw new InvalidOperationException($"Connection string '{AppConstants.ConnectionStrings.Redis}' not found.");
 
         services.AddHealthChecks()
             .AddSqlServer(
