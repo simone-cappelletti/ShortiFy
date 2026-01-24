@@ -51,17 +51,20 @@ public static class HealthCheckExtensions
     /// <returns>The web application for chaining.</returns>
     public static WebApplication MapHealthCheckEndpoints(this WebApplication app)
     {
+        // Complete health check
         app.MapHealthChecks("/health", new HealthCheckOptions
         {
             ResponseWriter = WriteHealthCheckResponse
         });
 
+        // Readiness probe
         app.MapHealthChecks("/health/ready", new HealthCheckOptions
         {
             Predicate = check => check.Tags.Contains("ready"),
             ResponseWriter = WriteHealthCheckResponse
         });
 
+        // Liveness probe
         app.MapHealthChecks("/health/live", new HealthCheckOptions
         {
             Predicate = _ => false

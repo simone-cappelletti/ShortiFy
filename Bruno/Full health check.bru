@@ -1,0 +1,16 @@
+meta {
+  name: Full health check
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:5080/health
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

@@ -1,0 +1,16 @@
+meta {
+  name: Readiness check
+  type: http
+  seq: 2
+}
+
+get {
+  url: http://localhost:5080/health/ready
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
