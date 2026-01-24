@@ -40,6 +40,7 @@ Each feature is self-contained with its own Request, Endpoint, and Response clas
 | Logging | Serilog | Structured logging |
 | Tracing | OpenTelemetry + Grafana | Distributed tracing |
 | Testing | xUnit + Moq | Unit & integration |
+| Tool | Bruno | For calling endpoints |
 
 ## Code Conventions
 
