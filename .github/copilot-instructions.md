@@ -38,7 +38,7 @@ Each feature is self-contained with its own Request, Endpoint, and Response clas
 | Database | SQL Server + EF Core 10 | LocalDB for dev |
 | Cache | Redis 7.x | For URL resolution |
 | Logging | Serilog | Structured logging |
-| Tracing | OpenTelemetry + Grafana | Distributed tracing |
+| Tracing | OpenTelemetry + Aspire Dashboard | Distributed tracing |
 | Testing | xUnit + Moq | Unit & integration |
 | Tool | Bruno | For calling endpoints |
 
