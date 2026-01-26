@@ -13,20 +13,38 @@ public static class SerilogExtensions
     /// <summary>
     /// Configures Serilog with two-stage initialization pattern.
     /// Bootstrap logger catches startup errors before full configuration loads.
+    /// Includes OpenTelemetry span enrichment for TraceId/SpanId correlation
+    /// and OTLP export for unified observability.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddSerilogLogging(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddSerilog((services, lc) => lc
-            .ReadFrom.Configuration(configuration)
-            .ReadFrom.Services(services)
-            .Enrich.FromLogContext()
-            .Enrich.WithEnvironmentName()
-            .Enrich.WithMachineName()
-            .Enrich.WithThreadId()
-            .Enrich.WithSpan());
+        var otlpEndpoint = configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317";
+        var otlpProtocol = ParseOtlpProtocol(configuration["OpenTelemetry:Protocol"]);
+        var serviceName = configuration["OpenTelemetry:ServiceName"] ?? "ShortiFy";
+
+        services.AddSerilog((services, lc) =>
+        {
+            lc.ReadFrom.Configuration(configuration)
+              .ReadFrom.Services(services)
+              .Enrich.FromLogContext()
+              .Enrich.WithEnvironmentName()
+              .Enrich.WithMachineName()
+              .Enrich.WithThreadId()
+              .Enrich.WithSpan()
+              .WriteTo.OpenTelemetry(options =>
+              {
+                  options.Endpoint = otlpEndpoint;
+                  options.Protocol = otlpProtocol;
+                  options.ResourceAttributes = new Dictionary<string, object>
+                  {
+                      ["service.name"] = serviceName
+                  };
+                  options.RestrictedToMinimumLevel = LogEventLevel.Information;
+              });
+        });
 
         return services;
     }
@@ -62,5 +80,20 @@ public static class SerilogExtensions
         });
 
         return app;
+    }
+
+    /// <summary>
+    /// Parses the OTLP protocol from configuration string.
+    /// Supports "Grpc" (default) and "HttpProtobuf" values.
+    /// </summary>
+    /// <param name="protocol">The protocol string from configuration.</param>
+    /// <returns>The parsed OtlpProtocol enum value.</returns>
+    private static OtlpProtocol ParseOtlpProtocol(string? protocol)
+    {
+        return protocol?.ToLowerInvariant() switch
+        {
+            "httpprotobuf" or "http" => OtlpProtocol.HttpProtobuf,
+            _ => OtlpProtocol.Grpc
+        };
     }
 }
