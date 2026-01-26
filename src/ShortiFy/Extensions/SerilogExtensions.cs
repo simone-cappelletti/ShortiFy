@@ -3,6 +3,8 @@ using Serilog.Enrichers.Span;
 using Serilog.Events;
 using Serilog.Sinks.OpenTelemetry;
 
+using SimoneCappelletti.ShortiFy.Shared.Constants;
+
 namespace SimoneCappelletti.ShortiFy.Extensions;
 
 /// <summary>
@@ -23,7 +25,7 @@ public static class SerilogExtensions
     {
         var otlpEndpoint = configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317";
         var otlpProtocol = ParseOtlpProtocol(configuration["OpenTelemetry:Protocol"]);
-        var serviceName = configuration["OpenTelemetry:ServiceName"] ?? "ShortiFy";
+        var serviceName = configuration["OpenTelemetry:ServiceName"] ?? AppConstants.ApplicationName;
 
         services.AddSerilog((services, lc) =>
         {
