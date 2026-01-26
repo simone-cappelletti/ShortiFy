@@ -1,5 +1,7 @@
 using Serilog;
+using Serilog.Enrichers.Span;
 using Serilog.Events;
+using Serilog.Sinks.OpenTelemetry;
 
 namespace SimoneCappelletti.ShortiFy.Extensions;
 
@@ -23,7 +25,8 @@ public static class SerilogExtensions
             .Enrich.FromLogContext()
             .Enrich.WithEnvironmentName()
             .Enrich.WithMachineName()
-            .Enrich.WithThreadId());
+            .Enrich.WithThreadId()
+            .Enrich.WithSpan());
 
         return services;
     }
