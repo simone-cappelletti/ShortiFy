@@ -1,0 +1,15 @@
+# =============================================================================
+# ShortiFy Docker Compose Override (Development)
+# Development-specific settings that override docker-compose.yml
+# =============================================================================
+
+services:
+  shortify-api:
+    # Mount source code for development (optional - for debugging)
+    # volumes:
+    #   - ./src/ShortiFy:/app:ro
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      Logging__LogLevel__Default: "Debug"
+      Logging__LogLevel__Microsoft.AspNetCore: "Warning"
+      Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"

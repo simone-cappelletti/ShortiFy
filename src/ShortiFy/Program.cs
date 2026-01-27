@@ -1,9 +1,14 @@
+using Microsoft.EntityFrameworkCore;
+
 using Serilog;
 
 using SimoneCappelletti.ShortiFy.Extensions;
+using SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
 
-// Bootstrap logger - catches startup errors before full configuration loads
-SerilogExtensions.CreateBootstrapLogger();
+// Bootstrap Serilog for early logging (before host is built)
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
 
 try
 {
@@ -11,7 +16,7 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Configure services
+    // Add services to the container
     builder.Services.AddSerilogLogging(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddRedisCache(builder.Configuration);
@@ -20,20 +25,61 @@ try
 
     var app = builder.Build();
 
-    // Configure request pipeline
+    // Apply database migrations on startup
+    await ApplyMigrationsAsync(app);
+
+    // Configure the HTTP request pipeline
     app.UseSerilogRequestLoggingMiddleware();
     app.MapHealthCheckEndpoints();
 
     // Placeholder endpoint
-    app.MapGet("/", () => "ShortiFy API is running");
+    app.MapGet("/", () => "Hello ShortiFy!");
 
-    app.Run();
+    await app.RunAsync();
 }
-catch (Exception ex)
+catch (Exception ex) when (ex is not HostAbortedException)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
 }
 finally
 {
     await Log.CloseAndFlushAsync();
+}
+
+/// <summary>
+/// Applies pending database migrations on application startup.
+/// </summary>
+/// <param name="app">The web application instance.</param>
+static async Task ApplyMigrationsAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<ShortiFyDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+
+    try
+    {
+        logger.LogInformation("Checking for pending database migrations...");
+
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        var migrations = pendingMigrations.ToList();
+
+        if (migrations.Count > 0)
+        {
+            logger.LogInformation("Applying {MigrationCount} pending migration(s): {Migrations}",
+                migrations.Count, string.Join(", ", migrations));
+
+            await dbContext.Database.MigrateAsync();
+
+            logger.LogInformation("Database migrations applied successfully");
+        }
+        else
+        {
+            logger.LogInformation("Database is up to date, no migrations to apply");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while applying database migrations");
+        throw;
+    }
 }

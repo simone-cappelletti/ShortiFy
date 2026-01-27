@@ -114,3 +114,109 @@ public class ShortUrl
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
 ```
+
+## Docker Development
+
+ShortiFy can be run in Docker containers along with all required infrastructure services.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) (v20.10+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (v2.0+)
+
+### Quick Start
+
+1. **Copy environment file:**
+  ```bash
+  cp .env.example .env
+  ```
+
+2. **Start all services:**
+  ```bash
+  docker compose up -d
+  ```
+
+3. **Verify services are running:**
+  ```bash
+  docker compose ps
+  ```
+
+4. **Access the application:**
+  - **API:** http://localhost:5080
+  - **Health Check:** http://localhost:5080/health
+  - **Aspire Dashboard:** http://localhost:18888
+
+### Services
+
+| Service | Port | Description |
+|---------|------|-------------|
+| `shortify-api` | 5080 | ShortiFy API |
+| `sqlserver` | 1433 | SQL Server 2022 |
+| `redis` | 6379 | Redis 7 Cache |
+| `aspire-dashboard` | 18888 | OpenTelemetry Dashboard |
+
+### Common Commands
+
+```bash
+# Start infrastructure only (SQL Server, Redis, Aspire Dashboard)
+docker compose up -d sqlserver redis aspire-dashboard
+
+# Start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f shortify-api
+
+# Stop all services (preserve data)
+docker compose down
+
+# Stop all services and remove volumes (clean slate)
+docker compose down -v
+
+# Rebuild API after code changes
+docker compose up -d --build shortify-api
+```
+
+### Connecting to SQL Server
+
+Use your preferred SQL client with these connection details:
+
+| Property | Value |
+|----------|-------|
+| Server | `localhost,1433` |
+| Database | `ShortiFy` |
+| Username | `sa` |
+| Password | `YourStrong!Passw0rd` (or value from `.env`) |
+
+**Connection String:**
+```
+Server=localhost,1433;Database=ShortiFy;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True
+```
+
+### Viewing Telemetry
+
+1. Open the Aspire Dashboard at http://localhost:18888
+2. Navigate to **Traces** to see distributed traces
+3. Navigate to **Metrics** to see application metrics
+4. Navigate to **Logs** to see structured logs
+
+### Troubleshooting
+
+**API fails to start with database connection error:**
+```bash
+# Ensure SQL Server is healthy
+docker compose ps sqlserver
+# Wait for SQL Server to be ready (can take 30+ seconds on first start)
+docker compose logs sqlserver
+```
+
+**Reset everything and start fresh:**
+```bash
+docker compose down -v
+docker compose up -d
+```
+
+**View real-time logs:**
+```bash
+docker compose logs -f
+```
