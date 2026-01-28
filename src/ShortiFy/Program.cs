@@ -5,10 +5,7 @@ using Serilog;
 using SimoneCappelletti.ShortiFy.Extensions;
 using SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
 
-// Bootstrap Serilog for early logging (before host is built)
-Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
-    .CreateBootstrapLogger();
+SerilogExtensions.CreateBootstrapLogger();
 
 try
 {
@@ -16,7 +13,6 @@ try
 
     var builder = WebApplication.CreateBuilder(args);
 
-    // Add services to the container
     builder.Services.AddSerilogLogging(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddRedisCache(builder.Configuration);
@@ -25,10 +21,8 @@ try
 
     var app = builder.Build();
 
-    // Apply database migrations on startup
     await ApplyMigrationsAsync(app);
 
-    // Configure the HTTP request pipeline
     app.UseSerilogRequestLoggingMiddleware();
     app.MapHealthCheckEndpoints();
 
@@ -37,7 +31,7 @@ try
 
     await app.RunAsync();
 }
-catch (Exception ex) when (ex is not HostAbortedException)
+catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
 }
