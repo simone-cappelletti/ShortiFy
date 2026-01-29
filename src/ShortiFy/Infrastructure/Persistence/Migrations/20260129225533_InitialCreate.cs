@@ -19,7 +19,8 @@ namespace SimoneCappelletti.ShortiFy.Infrastructure.Persistence.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ShortCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
                     OriginalUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
+                    ShortenUrl = table.Column<string>(type: "nvarchar(2048)", maxLength: 2048, nullable: false),
+                    CreatedOnUtc = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
                 },
                 constraints: table =>
                 {

@@ -12,7 +12,7 @@ using SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
 namespace SimoneCappelletti.ShortiFy.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ShortiFyDbContext))]
-    [Migration("20260122231511_InitialCreate")]
+    [Migration("20260129225533_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,7 +33,7 @@ namespace SimoneCappelletti.ShortiFy.Infrastructure.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime>("CreatedOnUtc")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
@@ -48,11 +48,15 @@ namespace SimoneCappelletti.ShortiFy.Infrastructure.Persistence.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
+                    b.Property<string>("ShortenUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ShortCode")
-                        .IsUnique()
-                        .HasDatabaseName("IX_ShortUrls_ShortCode");
+                        .IsUnique();
 
                     b.ToTable("ShortUrls");
                 });

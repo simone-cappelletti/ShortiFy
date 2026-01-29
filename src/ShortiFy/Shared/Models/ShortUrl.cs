@@ -19,17 +19,24 @@ public class ShortUrl
     /// </summary>
     [Required]
     [StringLength(10)]
-    public string ShortCode { get; set; } = string.Empty;
+    public required string ShortCode { get; set; }
 
     /// <summary>
     /// Gets or sets the original full URL.
     /// </summary>
     [Required]
     [MaxLength(2048)]
-    public string OriginalUrl { get; set; } = string.Empty;
+    public required string OriginalUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the shortened URL.
+    /// </summary>
+    [Required]
+    [MaxLength(2048)]
+    public required string ShortenUrl { get; set; }
 
     /// <summary>
     /// Gets or sets the UTC timestamp when the URL was created.
     /// </summary>
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedOnUtc { get; set; } = DateTime.UtcNow;
 }

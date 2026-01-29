@@ -33,8 +33,7 @@ public sealed class ShortiFyDbContext : DbContext
             entity.HasKey(e => e.Id);
 
             entity.HasIndex(e => e.ShortCode)
-                  .IsUnique()
-                  .HasDatabaseName("IX_ShortUrls_ShortCode");
+                  .IsUnique();
 
             entity.Property(e => e.ShortCode)
                   .HasMaxLength(10)
@@ -44,7 +43,11 @@ public sealed class ShortiFyDbContext : DbContext
                   .HasMaxLength(2048)
                   .IsRequired();
 
-            entity.Property(e => e.CreatedAt)
+            entity.Property(e => e.ShortenUrl)
+                .HasMaxLength(2048)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedOnUtc)
                   .HasDefaultValueSql("GETUTCDATE()");
         });
     }
