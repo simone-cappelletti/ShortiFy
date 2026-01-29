@@ -68,6 +68,7 @@ services:
       ConnectionStrings__Redis: "${REDIS_CONNECTION:-redis:6379}"
       OpenTelemetry__ServiceName: "${OTEL_SERVICE_NAME:-ShortiFy}"
       OpenTelemetry__Endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://aspire-dashboard:18889}"
+      OpenTelemetry__Protocol: "Grpc"
     depends_on:
       sqlserver:
         condition: service_healthy
