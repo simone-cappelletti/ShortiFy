@@ -1,6 +1,10 @@
+# Development-specific overrides
+# This file is automatically loaded with docker-compose.yml
+
 services:
   shortify-api:
     environment:
+      # Development logging levels
       Logging__LogLevel__Default: "Debug"
       Logging__LogLevel__Microsoft.AspNetCore: "Warning"
       Logging__LogLevel__Microsoft.EntityFrameworkCore: "Information"

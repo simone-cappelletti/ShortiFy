@@ -28,9 +28,6 @@ COPY --from=publish /app/publish .
 
 EXPOSE 8080
 
-ENV ASPNETCORE_URLS=http://+:8080
-ENV ASPNETCORE_ENVIRONMENT=Development
-
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl --fail http://localhost:8080/health/live || exit 1
 

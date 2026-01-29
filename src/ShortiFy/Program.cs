@@ -57,7 +57,7 @@ static async Task ApplyMigrationsAsync(WebApplication app)
         var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
         var migrations = pendingMigrations.ToList();
 
-        if (migrations.Count > 0)
+        if (migrations.Any())
         {
             logger.LogInformation("Applying {MigrationCount} pending migration(s): {Migrations}",
                 migrations.Count, string.Join(", ", migrations));
