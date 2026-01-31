@@ -69,6 +69,8 @@ services:
       OpenTelemetry__ServiceName: "${OTEL_SERVICE_NAME:-ShortiFy}"
       OpenTelemetry__Endpoint: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://aspire-dashboard:18889}"
       OpenTelemetry__Protocol: "Grpc"
+    command: >
+      ["sh","-c","/root/.dotnet/tools/dotnet-ef database update"]
     depends_on:
       sqlserver:
         condition: service_healthy
