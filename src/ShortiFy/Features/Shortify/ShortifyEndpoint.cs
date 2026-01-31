@@ -32,20 +32,17 @@ public static class ShortifyEndpoint
         ShortifyRequest request,
         ShortiFyDbContext dbContext,
         IShortUrlCacheService cacheService,
-        ShortCodeService shortCodeService,
+        IShortCodeService shortCodeService,
         IOptions<ShortifyOptions> options,
         ILogger<ShortifyRequest> logger,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Processing shortify request for URL: {OriginalUrl}", request.OriginalUrl);
 
-        // Validate URL format and scheme
         var validationResult = ValidateUrl(request.OriginalUrl);
 
         if (validationResult is not null)
-        {
             return validationResult;
-        }
 
         // Check if URL already exists (idempotency)
         var existingUrl = await dbContext.ShortUrls
@@ -55,7 +52,7 @@ public static class ShortifyEndpoint
         {
             logger.LogInformation("URL already exists with short code: {ShortCode}", existingUrl.ShortCode);
 
-            return Results.Ok(new ShortifyResponse(
+            return TypedResults.Ok(new ShortifyResponse(
                 existingUrl.ShortCode,
                 existingUrl.ShortenUrl,
                 existingUrl.OriginalUrl));
@@ -68,14 +65,13 @@ public static class ShortifyEndpoint
         {
             logger.LogError("Failed to generate unique short code after maximum attempts");
 
-            return Results.Problem(
+            return TypedResults.Problem(
                 title: "Short Code Generation Failed",
                 detail: "Unable to generate a unique short code. Please try again.",
                 statusCode: StatusCodes.Status500InternalServerError);
         }
 
-        var config = options.Value;
-        var shortenedUrl = $"{config.BaseUrl.TrimEnd('/')}/{shortCode}";
+        var shortenedUrl = $"{options.Value.BaseUrl}{shortCode}";
 
         // Create and persist the short URL
         var shortUrl = new ShortUrl
@@ -98,7 +94,7 @@ public static class ShortifyEndpoint
 
         var response = new ShortifyResponse(shortCode, shortenedUrl, request.OriginalUrl);
 
-        return Results.Created($"/api/unshortify/{shortCode}", response);
+        return TypedResults.Created($"/api/unshortify/{shortCode}", response);
 
         // Local function: Validates URL format and scheme
         IResult? ValidateUrl(string url)
@@ -107,7 +103,7 @@ public static class ShortifyEndpoint
             {
                 logger.LogWarning("Invalid URL format: {OriginalUrl}", url);
 
-                return Results.Problem(
+                return TypedResults.Problem(
                     title: "Invalid URL",
                     detail: "The provided URL is not a valid absolute URL.",
                     statusCode: StatusCodes.Status400BadRequest);
@@ -117,35 +113,33 @@ public static class ShortifyEndpoint
             {
                 logger.LogWarning("Invalid URL scheme: {Scheme} for URL: {OriginalUrl}", uri.Scheme, url);
 
-                return Results.Problem(
+                return TypedResults.Problem(
                     title: "Invalid URL Scheme",
                     detail: "Only HTTP and HTTPS URLs are supported.",
                     statusCode: StatusCodes.Status400BadRequest);
             }
 
-            return null;
+            return default;
         }
 
         // Local function: Generates a unique short code with collision handling
         async Task<string?> GenerateUniqueShortCodeAsync()
         {
-            const int maxAttempts = 10;
+            const int MaxAttempts = 10;
 
-            for (var attempt = 1; attempt <= maxAttempts; attempt++)
+            for (var attempt = 1; attempt <= MaxAttempts; attempt++)
             {
                 var code = shortCodeService.GenerateShortCode();
                 var codeExists = await dbContext.ShortUrls
                     .AnyAsync(x => x.ShortCode == code, cancellationToken);
 
                 if (!codeExists)
-                {
                     return code;
-                }
 
                 logger.LogDebug("Short code collision detected: {ShortCode}, attempt {Attempt}", code, attempt);
             }
 
-            return null;
+            return default;
         }
     }
 }

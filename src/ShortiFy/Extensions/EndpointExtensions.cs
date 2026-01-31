@@ -43,7 +43,7 @@ public static class EndpointExtensions
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddShortifyServices(this IServiceCollection services)
     {
-        services.AddSingleton<ShortCodeService>();
+        services.AddSingleton<IShortCodeService, ShortCodeService>();
 
         return services;
     }

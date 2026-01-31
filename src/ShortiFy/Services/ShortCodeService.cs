@@ -6,7 +6,7 @@ namespace SimoneCappelletti.ShortiFy.Services;
 /// <summary>
 /// Service for generating unique short codes using Base62 encoding.
 /// </summary>
-public sealed class ShortCodeService
+public sealed class ShortCodeService : IShortCodeService
 {
     /// <summary>
     /// Base62 character set: a-z, A-Z, 0-9 (62 characters total).
@@ -14,23 +14,8 @@ public sealed class ShortCodeService
     /// </summary>
     private const string Base62Chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    /// <summary>
-    /// Default length of generated short codes.
-    /// </summary>
-    private const int DefaultCodeLength = 6;
-
-    /// <summary>
-    /// Generates a cryptographically random short code.
-    /// </summary>
-    /// <param name="length">The length of the short code to generate. Defaults to 6.</param>
-    /// <returns>A random Base62 encoded short code.</returns>
-    /// <example>
-    /// <code>
-    /// var service = new ShortCodeService();
-    /// var shortCode = service.GenerateShortCode(); // e.g., "aBc1Xy"
-    /// </code>
-    /// </example>
-    public string GenerateShortCode(int length = DefaultCodeLength)
+    /// <inheritdoc/>
+    public string GenerateShortCode(int length = IShortCodeService.DefaultCodeLength)
     {
         var stringBuilder = new StringBuilder(length);
 

@@ -29,9 +29,6 @@ try
     app.MapHealthCheckEndpoints();
     app.MapShortifyEndpoints();
 
-    // Placeholder endpoint
-    app.MapGet("/", () => "Hello ShortiFy!");
-
     await app.RunAsync();
 }
 catch (Exception ex)

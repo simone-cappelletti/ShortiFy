@@ -95,14 +95,10 @@ public static class HealthCheckExtensions
                 jsonWriter.WriteString("duration", entry.Value.Duration.ToString());
 
                 if (entry.Value.Description is not null)
-                {
                     jsonWriter.WriteString("description", entry.Value.Description);
-                }
 
                 if (entry.Value.Exception is not null)
-                {
                     jsonWriter.WriteString("exception", entry.Value.Exception.Message);
-                }
 
                 jsonWriter.WriteEndObject();
             }

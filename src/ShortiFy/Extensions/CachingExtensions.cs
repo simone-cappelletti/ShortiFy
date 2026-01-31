@@ -11,7 +11,7 @@ namespace SimoneCappelletti.ShortiFy.Extensions;
 public static class CachingExtensions
 {
     /// <summary>
-    /// Configures Redis distributed cache and registers ConnectionMultiplexer for instrumentation.
+    /// Configures Redis distributed cache.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
@@ -32,7 +32,6 @@ public static class CachingExtensions
         services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(redisConnectionString));
 
-        // Register cache service as Singleton for optimal performance
         services.AddSingleton<IShortUrlCacheService, ShortUrlCacheService>();
 
         return services;

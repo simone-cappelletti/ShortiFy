@@ -40,12 +40,10 @@ public static class UnshortifyEndpoint
         var cachedUrl = await cacheService.GetAsync(shortCode, cancellationToken);
 
         if (cachedUrl is not null)
-        {
-            return Results.Ok(new UnshortifyResponse(
+            return TypedResults.Ok(new UnshortifyResponse(
                 cachedUrl.OriginalUrl,
                 shortCode,
                 cachedUrl.ShortenUrl));
-        }
 
         // Step 2: Cache miss - query SQL Server
         var shortUrl = await dbContext.ShortUrls
@@ -55,7 +53,7 @@ public static class UnshortifyEndpoint
         {
             logger.LogWarning("Short code not found: {ShortCode}", shortCode);
 
-            return Results.Problem(
+            return TypedResults.Problem(
                 title: "Short Code Not Found",
                 detail: $"No URL found for short code '{shortCode}'.",
                 statusCode: StatusCodes.Status404NotFound);
@@ -69,7 +67,7 @@ public static class UnshortifyEndpoint
 
         logger.LogInformation("Resolved short code: {ShortCode} -> {OriginalUrl}", shortCode, shortUrl.OriginalUrl);
 
-        return Results.Ok(new UnshortifyResponse(
+        return TypedResults.Ok(new UnshortifyResponse(
             shortUrl.OriginalUrl,
             shortCode,
             shortUrl.ShortenUrl));

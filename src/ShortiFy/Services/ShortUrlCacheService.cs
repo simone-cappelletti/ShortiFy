@@ -10,7 +10,6 @@ namespace SimoneCappelletti.ShortiFy.Services;
 
 /// <summary>
 /// Service for caching short URL data in Redis using the Cache-Aside pattern.
-/// Registered as Singleton for optimal performance.
 /// </summary>
 public sealed class ShortUrlCacheService : IShortUrlCacheService
 {
@@ -34,23 +33,25 @@ public sealed class ShortUrlCacheService : IShortUrlCacheService
         _logger = logger;
     }
 
+    /// <inheritdoc/>
     public async Task<CachedShortUrl?> GetAsync(string shortCode, CancellationToken cancellationToken = default)
     {
         var cacheKey = BuildCacheKey(shortCode);
-        var cachedValue = await _cache.GetStringAsync(cacheKey, cancellationToken);
+        var cacheValue = await _cache.GetStringAsync(cacheKey, cancellationToken);
 
-        if (cachedValue is null)
+        if (cacheValue is null)
         {
             _logger.LogDebug("Cache miss for short code: {ShortCode}", shortCode);
 
-            return null;
+            return default;
         }
 
         _logger.LogDebug("Cache hit for short code: {ShortCode}", shortCode);
 
-        return JsonSerializer.Deserialize<CachedShortUrl>(cachedValue);
+        return JsonSerializer.Deserialize<CachedShortUrl>(cacheValue);
     }
 
+    /// <inheritdoc/>
     public async Task SetAsync(string shortCode, CachedShortUrl cachedShortUrl, CancellationToken cancellationToken = default)
     {
         var cacheKey = BuildCacheKey(shortCode);
