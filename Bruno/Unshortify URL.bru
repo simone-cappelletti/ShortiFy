@@ -1,0 +1,20 @@
+meta {
+  name: Unshortify URL
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:5080/api/unshortify/aBc1Xy
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
+
+docs {
+  Replace 'aBc1Xy' with an actual short code returned from the Shortify endpoint.
+}

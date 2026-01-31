@@ -47,4 +47,26 @@ public sealed class AppConstants
         /// </summary>
         public const string Development = "Development";
     }
+
+    /// <summary>
+    /// Configuration section names.
+    /// </summary>
+    public sealed class ConfigurationSections
+    {
+        /// <summary>
+        /// The Shortify feature configuration section name.
+        /// </summary>
+        public const string Shortify = "Shortify";
+    }
+
+    /// <summary>
+    /// Redis cache key prefixes for different features.
+    /// </summary>
+    public sealed class CacheKeys
+    {
+        /// <summary>
+        /// Cache key prefix for shortened URLs. Format: shortify:{shortCode}
+        /// </summary>
+        public const string ShortifyPrefix = "shortify:";
+    }
 }

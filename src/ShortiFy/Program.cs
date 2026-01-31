@@ -18,6 +18,7 @@ try
     builder.Services.AddRedisCache(builder.Configuration);
     builder.Services.AddObservability(builder.Configuration);
     builder.Services.AddAppHealthChecks(builder.Configuration);
+    builder.Services.AddShortifyServices();
 
     var app = builder.Build();
 
@@ -25,6 +26,7 @@ try
 
     app.UseSerilogRequestLoggingMiddleware();
     app.MapHealthCheckEndpoints();
+    app.MapShortifyEndpoints();
 
     // Placeholder endpoint
     app.MapGet("/", () => "Hello ShortiFy!");

@@ -1,0 +1,22 @@
+meta {
+  name: Shortify URL
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:5080/api/shortify
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "originalUrl": "https://example.com/very/long/path/to/resource?param=value"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
