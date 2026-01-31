@@ -1,3 +1,4 @@
+using SimoneCappelletti.ShortiFy.Services;
 using SimoneCappelletti.ShortiFy.Shared.Constants;
 
 using StackExchange.Redis;
@@ -30,6 +31,9 @@ public static class CachingExtensions
         // Register Redis ConnectionMultiplexer for OpenTelemetry instrumentation
         services.AddSingleton<IConnectionMultiplexer>(sp =>
             ConnectionMultiplexer.Connect(redisConnectionString));
+
+        // Register cache service as Singleton for optimal performance
+        services.AddSingleton<IShortUrlCacheService, ShortUrlCacheService>();
 
         return services;
     }

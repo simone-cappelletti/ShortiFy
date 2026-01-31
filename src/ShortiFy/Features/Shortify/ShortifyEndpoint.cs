@@ -1,11 +1,8 @@
-using System.Text.Json;
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Options;
 
 using SimoneCappelletti.ShortiFy.Infrastructure.Persistence;
 using SimoneCappelletti.ShortiFy.Services;
-using SimoneCappelletti.ShortiFy.Shared.Constants;
 using SimoneCappelletti.ShortiFy.Shared.Models;
 
 namespace SimoneCappelletti.ShortiFy.Features.Shortify;
@@ -21,9 +18,9 @@ public static class ShortifyEndpoint
     /// </summary>
     /// <param name="request">The shortify request containing the original URL.</param>
     /// <param name="dbContext">The database context for persistence.</param>
-    /// <param name="cache">The distributed cache for Redis operations.</param>
+    /// <param name="cacheService">The cache service for Redis operations.</param>
     /// <param name="shortCodeService">The service for generating short codes.</param>
-    /// <param name="configuration">The application configuration.</param>
+    /// <param name="options">The Shortify configuration options.</param>
     /// <param name="logger">The logger for structured logging.</param>
     /// <param name="cancellationToken">Cancellation token for async operations.</param>
     /// <returns>
@@ -34,31 +31,20 @@ public static class ShortifyEndpoint
     public static async Task<IResult> HandleAsync(
         ShortifyRequest request,
         ShortiFyDbContext dbContext,
-        IDistributedCache cache,
+        IShortUrlCacheService cacheService,
         ShortCodeService shortCodeService,
-        IConfiguration configuration,
+        IOptions<ShortifyOptions> options,
         ILogger<ShortifyRequest> logger,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("Processing shortify request for URL: {OriginalUrl}", request.OriginalUrl);
 
         // Validate URL format and scheme
-        if (!Uri.TryCreate(request.OriginalUrl, UriKind.Absolute, out var uri))
-        {
-            logger.LogWarning("Invalid URL format: {OriginalUrl}", request.OriginalUrl);
-            return Results.Problem(
-                title: "Invalid URL",
-                detail: "The provided URL is not a valid absolute URL.",
-                statusCode: StatusCodes.Status400BadRequest);
-        }
+        var validationResult = ValidateUrl(request.OriginalUrl);
 
-        if (uri.Scheme is not ("http" or "https"))
+        if (validationResult is not null)
         {
-            logger.LogWarning("Invalid URL scheme: {Scheme} for URL: {OriginalUrl}", uri.Scheme, request.OriginalUrl);
-            return Results.Problem(
-                title: "Invalid URL Scheme",
-                detail: "Only HTTP and HTTPS URLs are supported.",
-                statusCode: StatusCodes.Status400BadRequest);
+            return validationResult;
         }
 
         // Check if URL already exists (idempotency)
@@ -68,51 +54,28 @@ public static class ShortifyEndpoint
         if (existingUrl is not null)
         {
             logger.LogInformation("URL already exists with short code: {ShortCode}", existingUrl.ShortCode);
-            return Results.Ok(new ShortifyResponse
-            {
-                ShortCode = existingUrl.ShortCode,
-                ShortUrl = existingUrl.ShortenUrl,
-                OriginalUrl = existingUrl.OriginalUrl
-            });
-        }
 
-        // Get configuration
-        var baseUrl = configuration.GetValue<string>($"{AppConstants.ConfigurationSections.Shortify}:BaseUrl")
-            ?? throw new InvalidOperationException("Shortify:BaseUrl configuration is missing.");
-        var cacheMinutes = configuration.GetValue<int>($"{AppConstants.ConfigurationSections.Shortify}:CacheExpirationMinutes", 60);
+            return Results.Ok(new ShortifyResponse(
+                existingUrl.ShortCode,
+                existingUrl.ShortenUrl,
+                existingUrl.OriginalUrl));
+        }
 
         // Generate unique short code with collision handling
-        string shortCode;
-        var maxAttempts = 10;
-        var attempt = 0;
+        var shortCode = await GenerateUniqueShortCodeAsync();
 
-        do
+        if (shortCode is null)
         {
-            shortCode = shortCodeService.GenerateShortCode();
-            attempt++;
+            logger.LogError("Failed to generate unique short code after maximum attempts");
 
-            var codeExists = await dbContext.ShortUrls
-                .AnyAsync(x => x.ShortCode == shortCode, cancellationToken);
-
-            if (!codeExists)
-            {
-                break;
-            }
-
-            logger.LogDebug("Short code collision detected: {ShortCode}, attempt {Attempt}", shortCode, attempt);
-        }
-        while (attempt < maxAttempts);
-
-        if (attempt >= maxAttempts)
-        {
-            logger.LogError("Failed to generate unique short code after {MaxAttempts} attempts", maxAttempts);
             return Results.Problem(
                 title: "Short Code Generation Failed",
                 detail: "Unable to generate a unique short code. Please try again.",
                 statusCode: StatusCodes.Status500InternalServerError);
         }
 
-        var shortenedUrl = $"{baseUrl.TrimEnd('/')}/{shortCode}";
+        var config = options.Value;
+        var shortenedUrl = $"{config.BaseUrl.TrimEnd('/')}/{shortCode}";
 
         // Create and persist the short URL
         var shortUrl = new ShortUrl
@@ -128,30 +91,61 @@ public static class ShortifyEndpoint
         logger.LogInformation("Created short URL: {ShortCode} -> {OriginalUrl}", shortCode, request.OriginalUrl);
 
         // Cache the URL for fast lookups
-        var cacheKey = $"{AppConstants.CacheKeys.ShortifyPrefix}{shortCode}";
-        var cacheValue = JsonSerializer.Serialize(new CachedShortUrl(shortUrl.OriginalUrl, shortUrl.ShortenUrl));
-        var cacheOptions = new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(cacheMinutes)
-        };
+        await cacheService.SetAsync(
+            shortCode,
+            new CachedShortUrl(shortUrl.OriginalUrl, shortUrl.ShortenUrl),
+            cancellationToken);
 
-        await cache.SetStringAsync(cacheKey, cacheValue, cacheOptions, cancellationToken);
-        logger.LogDebug("Cached short URL with key: {CacheKey}, TTL: {CacheMinutes} minutes", cacheKey, cacheMinutes);
-
-        var response = new ShortifyResponse
-        {
-            ShortCode = shortCode,
-            ShortUrl = shortenedUrl,
-            OriginalUrl = request.OriginalUrl
-        };
+        var response = new ShortifyResponse(shortCode, shortenedUrl, request.OriginalUrl);
 
         return Results.Created($"/api/unshortify/{shortCode}", response);
+
+        // Local function: Validates URL format and scheme
+        IResult? ValidateUrl(string url)
+        {
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                logger.LogWarning("Invalid URL format: {OriginalUrl}", url);
+
+                return Results.Problem(
+                    title: "Invalid URL",
+                    detail: "The provided URL is not a valid absolute URL.",
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (uri.Scheme is not ("http" or "https"))
+            {
+                logger.LogWarning("Invalid URL scheme: {Scheme} for URL: {OriginalUrl}", uri.Scheme, url);
+
+                return Results.Problem(
+                    title: "Invalid URL Scheme",
+                    detail: "Only HTTP and HTTPS URLs are supported.",
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            return null;
+        }
+
+        // Local function: Generates a unique short code with collision handling
+        async Task<string?> GenerateUniqueShortCodeAsync()
+        {
+            const int maxAttempts = 10;
+
+            for (var attempt = 1; attempt <= maxAttempts; attempt++)
+            {
+                var code = shortCodeService.GenerateShortCode();
+                var codeExists = await dbContext.ShortUrls
+                    .AnyAsync(x => x.ShortCode == code, cancellationToken);
+
+                if (!codeExists)
+                {
+                    return code;
+                }
+
+                logger.LogDebug("Short code collision detected: {ShortCode}, attempt {Attempt}", code, attempt);
+            }
+
+            return null;
+        }
     }
 }
-
-/// <summary>
-/// Internal record for caching short URL data in Redis.
-/// </summary>
-/// <param name="OriginalUrl">The original URL.</param>
-/// <param name="ShortenUrl">The shortened URL.</param>
-internal sealed record CachedShortUrl(string OriginalUrl, string ShortenUrl);

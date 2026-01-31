@@ -14,6 +14,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddSerilogLogging(builder.Configuration);
+    builder.Services.AddShortifyOptions(builder.Configuration);
     builder.Services.AddPersistence(builder.Configuration);
     builder.Services.AddRedisCache(builder.Configuration);
     builder.Services.AddObservability(builder.Configuration);
